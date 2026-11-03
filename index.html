@@ -206,7 +206,7 @@ function render(){
   if(!session){ ub.innerHTML=''; }
   else { ub.innerHTML = `<div><b>${esc(session.name)}</b> · ${esc(session.className)}</div><div>總點數 <b>${state.points}</b> 點 &nbsp; <button onclick="goHome()">首頁</button> <button onclick="logout()">登出</button></div>`; }
   if(view.page==='login') app.innerHTML = loginView();
-  else if(view.page==='teacher') app.innerHTML = teacherView();
+  else if(view.page==='teacher'){ app.innerHTML = teacherView(); if(hasSheet()) loadAllRecords(); }
   else if(view.page==='home') app.innerHTML = homeView();
   else if(view.page==='unit') app.innerHTML = unitView();
   window.scrollTo(0,0);
@@ -225,7 +225,7 @@ function loginView(){
     <div class="howto zh">
       <b>怎麼玩？</b> 共 100 個單元：初級 50 單元、中級 50 單元。每個單元先讀文章、看單字與文法，再完成 5 題閱讀測驗＋5 題單字題。答對 1 題得 ${CFG.pointsPerQuestion} 點，10 題全對再加 ${CFG.perfectBonus} 點！每個單元第一次作答才計分，之後可以再練習。
     </div>
-    <p class="muted zh" style="text-align:center;margin-top:14px">點數會記錄在這台裝置的瀏覽器中，請固定使用同一台裝置與同一個姓名登入。</p>
+    <p class="muted zh" style="text-align:center;margin-top:14px">${hasSheet()?'成績會自動上傳到老師的紀錄表，請每次都用同一個姓名登入。':'點數會記錄在這台裝置的瀏覽器中，請固定使用同一台裝置與同一個姓名登入。'}</p>
   </div>`;
 }
 function login(){
@@ -240,6 +240,40 @@ function login(){
   try{ sessionStorage.setItem('rdlab:session', JSON.stringify(session)); }catch(e){}
   load(); view={page:'home'}; render();
   toast(`歡迎回來，${name}！`);
+  syncFromSheet();
+}
+
+/* ===================== Google 試算表後端 ===================== */
+function hasSheet(){ return !!(CFG.sheetUrl && /^https?:\/\//.test(CFG.sheetUrl)); }
+async function sheetGet(params){
+  const u = new URL(CFG.sheetUrl); Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  const r = await fetch(u.toString(), {method:'GET', redirect:'follow'});
+  const d = await r.json(); if(!d.ok) throw new Error(d.error||'後端錯誤'); return d;
+}
+async function sheetPost(rec){
+  if(!hasSheet()) return false;
+  try{
+    const r = await fetch(CFG.sheetUrl, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(rec)});
+    const d = await r.json(); return !!d.ok;
+  }catch(e){ return false; }
+}
+/* 從試算表還原學生的點數（以試算表為準，與本機合併）*/
+async function syncFromSheet(){
+  if(!hasSheet() || !session) return;
+  try{
+    const d = await sheetGet({action:'student', name:session.name, code:session.code});
+    let changed = false;
+    for(const r of d.records){
+      const cur = state.units[r.unit];
+      if(r.counted && !(cur && cur.best!=null)){
+        state.units[r.unit] = {score:r.score, bonus:r.bonus, best:r.correct, tries:1, date:r.time.slice(0,10)}; changed = true;
+      } else if(cur && cur.best!=null && r.correct > cur.best){ cur.best = r.correct; changed = true; }
+    }
+    if(changed){
+      state.points = Object.values(state.units).reduce((a,x)=>a+(x.score||0)+(x.bonus||0),0);
+      save(); if(view.page==='home') render(); toast('已從雲端同步你的點數');
+    }
+  }catch(e){ console.warn('sync failed', e); }
 }
 function logout(){ session=null; try{ sessionStorage.removeItem('rdlab:session'); }catch(e){} view={page:'login'}; render(); }
 function goHome(){ view={page:'home'}; render(); }
@@ -298,14 +332,64 @@ function copyCert(){ const t=$('#certTxt').textContent; navigator.clipboard?.wri
 
 /* ---------- 老師驗證 ---------- */
 function teacherView(){
-  return `<div class="card login">
-    <h1 class="zh">老師驗證</h1>
-    <p class="zh muted">貼上學生提供的「點數證明碼」，即可核對姓名、班級與點數。可一次貼多行（每行一個）。</p>
+  const sheetPart = hasSheet() ? `<div class="card">
+      <h2 class="zh" style="color:var(--navy)">全班點數紀錄 <span class="muted" style="font-size:15px;font-weight:400">（資料來自 Google 試算表）</span></h2>
+      <div class="actions" style="justify-content:flex-start;margin-top:6px">
+        <button class="btn" onclick="loadAllRecords()">重新整理</button>
+        <button class="btn ghost" onclick="downloadCsv()">下載 CSV</button>
+        <select id="clsFilter" class="zh" style="font-family:inherit;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid #c9c3b4" onchange="renderRecords()">
+          <option value="">全部班級</option>${Object.entries(CFG.classCodes).map(([c,n])=>`<option value="${c}">${esc(n)}（${c}）</option>`).join('')}
+        </select>
+      </div>
+      <div id="recArea" class="zh"><p class="muted">載入中…</p></div>
+    </div>` : `<div class="card howto zh"><b>尚未連接 Google 試算表。</b>在 <code>config.js</code> 填入 sheetUrl（部署說明見 apps-script 資料夾的「設定步驟.txt」），這裡就會自動顯示全班紀錄。</div>`;
+  return `<div class="card">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h1 class="zh" style="color:var(--navy);margin:0">老師後台</h1><span class="sp" style="flex:1"></span><button class="btn ghost" onclick="logout()">返回登入</button></div>
+    </div>
+    ${sheetPart}
+    <div class="card">
+    <h2 class="zh" style="color:var(--navy)">證明碼核對 <span class="muted" style="font-size:15px;font-weight:400">（沒有連接試算表時的備用方式）</span></h2>
+    <p class="zh muted">貼上學生提供的「點數證明碼」，即可核對姓名、班級與點數。可一次貼多行。</p>
     <textarea id="certIn" placeholder="在此貼上證明碼"></textarea>
-    <div class="actions"><button class="btn" onclick="verifyCerts()">核對</button><button class="btn ghost" onclick="logout()">返回登入</button></div>
+    <div class="actions" style="justify-content:flex-start"><button class="btn" onclick="verifyCerts()">核對</button></div>
     <div id="certOut"></div>
-    <div class="howto zh" style="margin-top:20px"><b>設定提醒：</b>班級代碼、老師驗證碼與點數規則都在 <code>config.js</code> 裡，可以用記事本直接修改。</div>
+    <div class="howto zh" style="margin-top:20px"><b>設定提醒：</b>班級代碼、老師驗證碼、點數規則與試算表網址都在 <code>config.js</code> 裡，可以用記事本直接修改。</div>
   </div>`;
+}
+let allRecords = [];
+async function loadAllRecords(){
+  const area = $('#recArea'); if(!area) return;
+  area.innerHTML = '<p class="muted">載入中…</p>';
+  try{ const d = await sheetGet({action:'all'}); allRecords = d.records; renderRecords(); }
+  catch(e){ area.innerHTML = `<p style="color:var(--bad)">讀取失敗：${esc(e.message)}。請確認 config.js 的 sheetUrl 正確，且 Apps Script 已部署為「所有人」可存取。</p>`; }
+}
+function renderRecords(){
+  const area = $('#recArea'); if(!area) return;
+  const cls = $('#clsFilter') ? $('#clsFilter').value : '';
+  const recs = allRecords.filter(r=>!cls || r.code===cls);
+  if(!recs.length){ area.innerHTML = '<p class="muted">目前沒有紀錄。</p>'; return; }
+  // 每位學生彙總
+  const by = {};
+  for(const r of recs){
+    const k = r.code+'|'+r.name;
+    const s = by[k] || (by[k] = {name:r.name, code:r.code, className:r.className, points:0, units:new Set(), elem:0, inter:0, last:'', tries:0});
+    s.tries++;
+    if(r.counted){ s.points += r.score + r.bonus; if(!s.units.has(r.unit)){ s.units.add(r.unit); if(r.level==='elem') s.elem++; else s.inter++; } }
+    if(r.time > s.last) s.last = r.time;
+  }
+  const students = Object.values(by).sort((a,b)=>b.points-a.points || a.name.localeCompare(b.name,'zh-Hant'));
+  let html = `<h3 style="color:var(--muted)">學生總表（${students.length} 人）</h3>
+    <div style="overflow-x:auto"><table class="tl"><tr><th>#</th><th>姓名</th><th>班級</th><th>總點數</th><th>完成單元</th><th>初級</th><th>中級</th><th>作答次數</th><th>最後作答</th></tr>
+    ${students.map((s,i)=>`<tr><td>${i+1}</td><td><b>${esc(s.name)}</b></td><td>${esc(s.className)}</td><td style="color:var(--orange);font-weight:700">${s.points}</td><td>${s.units.size}</td><td>${s.elem}</td><td>${s.inter}</td><td>${s.tries}</td><td>${esc(s.last)}</td></tr>`).join('')}</table></div>
+    <h3 style="color:var(--muted);margin-top:22px">作答明細（最新在前，共 ${recs.length} 筆）</h3>
+    <div style="overflow-x:auto;max-height:480px;overflow-y:auto"><table class="tl"><tr><th>時間</th><th>姓名</th><th>班級</th><th>單元</th><th>標題</th><th>答對</th><th>得點</th><th>計分</th></tr>
+    ${recs.slice().sort((a,b)=>b.time.localeCompare(a.time)).map(r=>`<tr><td style="white-space:nowrap">${esc(r.time)}</td><td>${esc(r.name)}</td><td>${esc(r.className)}</td><td>${esc(r.unit)}</td><td>${esc(r.title)}</td><td>${r.correct}/10</td><td>${r.counted?r.score+r.bonus:'—'}</td><td>${r.counted?'是':'練習'}</td></tr>`).join('')}</table></div>`;
+  area.innerHTML = html;
+}
+function downloadCsv(){
+  const rows = [['時間','姓名','班級代碼','班級','等級','單元','標題','答對題數','得點','獎勵點','是否計分'], ...allRecords.map(r=>[r.time,r.name,r.code,r.className,r.level,r.unit,r.title,r.correct,r.score,r.bonus,r.counted?'是':'否'])];
+  const csv = '﻿' + rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = '點數紀錄_'+today()+'.csv'; a.click();
 }
 function verifyCerts(){
   const lines = $('#certIn').value.split(/\s+/).filter(Boolean);
@@ -401,6 +485,10 @@ function submitQuiz(){
   view.graded = {correct, score, bonus, counted};
   render();
   if(counted) toast(`＋${score+bonus} 點！累積 ${state.points} 點`);
+  if(hasSheet()){
+    sheetPost({name:session.name, code:session.code, className:session.className, level:u.level, unit:u.id, title:u.title, correct, score, bonus, counted})
+      .then(ok=>{ if(!ok) toast('雲端紀錄暫時無法寫入，點數已先存在本機'); });
+  }
 }
 function retry(){ view.answers={}; view.graded=null; view.step=3; render(); }
 
