@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>皇家大衛英文閱讀集點站</title>
+<link rel="icon" href="logo.png">
+<style>
+@font-face{font-family:"KaiU";src:url("fonts/kaiu.ttf") format("truetype");font-display:swap;}
+@font-face{font-family:"TNR";src:url("fonts/times.ttf") format("truetype");font-display:swap;}
+:root{
+  --navy:#1f3f8f; --navy-d:#152c66; --gold:#d9a52a; --gold-l:#f3dca0; --orange:#f07a1c;
+  --cream:#fbf7ee; --paper:#ffffff; --ink:#222; --muted:#6b6f7a; --line:#e3ddd0;
+  --ok:#2e8b57; --bad:#c0392b; --shadow:0 6px 22px rgba(31,63,143,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Times New Roman","TNR","標楷體","KaiU",serif;background:var(--cream);color:var(--ink);line-height:1.7;font-size:18px}
+.zh,[lang=zh]{font-family:"標楷體","KaiU","Times New Roman","TNR",serif}
+h1,h2,h3{font-weight:700;line-height:1.3;margin:.2em 0}
+a{color:var(--navy)}
+button{font-family:inherit;font-size:1em;cursor:pointer}
+.hidden{display:none !important}
+
+/* header */
+.topbar{background:linear-gradient(90deg,var(--navy-d),var(--navy));color:#fff;border-bottom:4px solid var(--gold)}
+.topbar .in{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
+.topbar img{height:52px;width:auto}
+.topbar .t1{font-size:22px;font-weight:700;letter-spacing:1px}
+.topbar .t2{font-size:13px;opacity:.85;font-style:italic}
+.topbar .sp{flex:1}
+.topbar .user{font-size:15px;text-align:right;line-height:1.35}
+.topbar .user b{color:var(--gold-l)}
+.topbar button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:8px;padding:5px 12px;font-size:14px}
+.topbar button:hover{background:rgba(255,255,255,.12)}
+
+.wrap{max-width:1080px;margin:0 auto;padding:22px 16px 60px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:22px 26px;margin-bottom:20px}
+.btn{background:var(--navy);color:#fff;border:0;border-radius:10px;padding:10px 22px;font-size:17px;font-weight:700;letter-spacing:.5px}
+.btn:hover{background:var(--navy-d)}
+.btn.gold{background:var(--gold);color:#2b2b2b}
+.btn.gold:hover{background:#c8951f}
+.btn.ghost{background:#fff;color:var(--navy);border:2px solid var(--navy)}
+.btn.ghost:hover{background:#eef2fb}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.muted{color:var(--muted);font-size:15px}
+.tag{display:inline-block;background:#eef2fb;color:var(--navy);border-radius:999px;padding:2px 12px;font-size:14px;margin-right:6px}
+.tag.o{background:#fff1e5;color:#b85a0c}
+.tag.g{background:#e8f6ec;color:var(--ok)}
+
+/* login */
+.login{max-width:520px;margin:30px auto}
+.login .logo{display:block;margin:0 auto 10px;height:120px}
+.login h1{text-align:center;font-size:30px;color:var(--navy)}
+.login .sub{text-align:center;color:var(--muted);margin-bottom:18px}
+.field{margin:14px 0}
+.field label{display:block;font-weight:700;margin-bottom:4px}
+.field input{width:100%;font-family:inherit;font-size:19px;padding:10px 12px;border:1px solid #c9c3b4;border-radius:10px}
+.field input:focus{outline:2px solid var(--gold)}
+.err{color:var(--bad);min-height:1.4em;font-size:15px}
+.howto{font-size:15px;color:#444;background:#fdf6e4;border-left:4px solid var(--gold);padding:10px 14px;border-radius:8px;margin-top:16px}
+
+/* dashboard */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.stat{background:linear-gradient(160deg,#fff,#f6f2e7);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center}
+.stat .n{font-size:38px;font-weight:700;color:var(--navy);line-height:1.1}
+.stat .l{font-size:15px;color:var(--muted)}
+.stat.pts .n{color:var(--orange)}
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){.levels{grid-template-columns:1fr}}
+.level h2{color:var(--navy);display:flex;align-items:center;gap:10px}
+.bar{height:12px;background:#ece7da;border-radius:999px;overflow:hidden;margin:6px 0 12px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--orange));width:0;transition:width .5s}
+.ulist{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.ubtn{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:left;width:100%;transition:.15s}
+.ubtn:hover{border-color:var(--navy);box-shadow:var(--shadow);transform:translateY(-1px)}
+.ubtn .no{min-width:36px;height:36px;border-radius:50%;background:#eef2fb;color:var(--navy);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:15px}
+.ubtn.done .no{background:var(--ok);color:#fff}
+.ubtn.perfect .no{background:var(--gold);color:#222}
+.ubtn .tt{flex:1;line-height:1.25;font-size:15px}
+.ubtn .tt small{display:block;color:var(--muted);font-size:13px}
+.ubtn .pt{font-size:13px;color:var(--orange);font-weight:700;white-space:nowrap}
+.badges span{display:inline-block;margin:4px 6px 0 0;background:#fff7e0;border:1px solid var(--gold);border-radius:999px;padding:3px 12px;font-size:14px}
+
+/* unit */
+.steps{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.steps button{flex:1;min-width:120px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 6px;font-size:15px;color:var(--muted)}
+.steps button.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+.steps button.ok{border-color:var(--ok);color:var(--ok)}
+.unit-head{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.unit-head h1{font-size:28px;color:var(--navy);margin:0}
+.unit-head .zh{color:var(--muted);font-size:18px}
+.article p{font-size:19px;line-height:1.85;text-align:justify;margin:0 0 1em;text-indent:0}
+.article p::first-letter{font-size:1.05em}
+.vocab-table{width:100%;border-collapse:collapse;font-size:17px}
+.vocab-table th{background:#eef2fb;color:var(--navy);text-align:left;padding:8px 10px;border-bottom:2px solid var(--navy)}
+.vocab-table td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.vocab-table td.w{font-weight:700;color:var(--navy);white-space:nowrap}
+.vocab-table td.p{color:var(--muted);font-style:italic;white-space:nowrap}
+.vocab-table .ex{display:block}
+.vocab-table .exz{display:block;color:#555;font-size:15px}
+.gbox{border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:10px;padding:12px 16px;margin:10px 0;background:#fffdf7}
+.gbox .pat{font-weight:700;color:var(--navy);font-size:18px}
+.gbox .exp{margin:4px 0}
+.gbox .ex{color:#333}
+.gbox .exz{color:#666;font-size:15px}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0;background:#fff}
+.q .qt{font-weight:700;margin-bottom:8px}
+.q .qt .n{display:inline-block;background:var(--navy);color:#fff;border-radius:6px;padding:0 8px;margin-right:8px;font-size:15px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:7px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+.opt:hover{background:#f6f3ea}
+.opt input{margin-top:7px}
+.opt .ab{font-weight:700;color:var(--navy);min-width:24px}
+.q.graded .opt{cursor:default}
+.q.graded .opt.correct{background:#e8f6ec;border-color:var(--ok)}
+.q.graded .opt.wrong{background:#fdecea;border-color:var(--bad)}
+.q .exp{margin-top:8px;padding:8px 12px;background:#fdf6e4;border-radius:8px;font-size:16px}
+.q .mark{float:right;font-weight:700}
+.q .mark.ok{color:var(--ok)} .q .mark.ng{color:var(--bad)}
+.result{text-align:center;padding:18px}
+.result .big{font-size:56px;font-weight:700;color:var(--orange);line-height:1.1}
+.result .msg{font-size:20px;margin:6px 0 14px}
+.trans p{font-size:18px;line-height:1.9;margin:0 0 1em;color:#333}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--navy-d);color:#fff;padding:12px 22px;border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.25);font-size:17px;opacity:0;pointer-events:none;transition:.3s}
+.toast.show{opacity:1}
+.certbox{background:#f4f6fb;border:1px dashed var(--navy);border-radius:10px;padding:12px;font-family:monospace;font-size:14px;word-break:break-all}
+textarea{width:100%;font-family:monospace;font-size:14px;padding:10px;border:1px solid #c9c3b4;border-radius:10px;min-height:90px}
+.footer{text-align:center;color:var(--muted);font-size:14px;margin-top:30px}
+table.tl{width:100%;border-collapse:collapse;font-size:16px}
+table.tl th,table.tl td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+@media(max-width:640px){
+  body{font-size:17px}
+  .topbar .t1{font-size:17px} .topbar .t2{display:none} .topbar img{height:40px} .topbar .user{font-size:13px}
+  .card{padding:16px 14px}
+  .unit-head h1{font-size:23px}
+  .vocab-table thead, .vocab-table tr:first-child th{display:none}
+  .vocab-table tr{display:block;border-bottom:1px solid var(--line);padding:8px 0}
+  .vocab-table td{display:inline;border:0;padding:0 6px 0 0}
+  .vocab-table td:last-child{display:block;padding-top:4px}
+  .article p{font-size:18px}
+}
+@media print{.topbar,.steps,.actions,button{display:none !important}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="in">
+    <img src="logo.png" alt="Royal David" onerror="this.style.display='none'">
+    <div>
+      <div class="t1 zh">皇家大衛英文閱讀集點站</div>
+      <div class="t2">Royal David Reading Points · GEPT 初級 / 中級</div>
+    </div>
+    <div class="sp"></div>
+    <div class="user zh" id="userbox"></div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+<div class="toast" id="toast"></div>
+<div class="footer zh">皇家大衛補習班 · 全民英檢系列 · 每天一篇英文閱讀，讓進步成為習慣</div>
+
+<script src="config.js"></script>
+<script src="units.js"></script>
+<script>
+/* ===================== 資料與工具 ===================== */
+const CFG = window.SITE_CONFIG;
+const UNITS = window.UNITS;
+const LEVELS = {elem:{name:'全民英檢初級',en:'GEPT Elementary',tag:'初級'}, inter:{name:'全民英檢中級',en:'GEPT Intermediate',tag:'中級'}};
+const ABC = ['A','B','C','D'];
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let session = null;   // {name, code, className}
+let state = {};       // {points, units:{id:{score,bonus,best,tries,date}}}
+let view = {page:'login'};
+
+function storeKey(){ return 'rdlab:' + session.code + ':' + session.name; }
+function load(){ try{ state = JSON.parse(localStorage.getItem(storeKey())) || {points:0, units:{}}; }catch(e){ state = {points:0, units:{}}; } }
+function save(){ try{ localStorage.setItem(storeKey(), JSON.stringify(state)); }catch(e){ toast('無法儲存進度（瀏覽器儲存空間被停用）'); } }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600); }
+function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+/* 簡單簽章（供老師驗證點數證明碼）*/
+function hash(str){ let h=5381; for(let i=0;i<str.length;i++){ h=((h<<5)+h+str.charCodeAt(i))|0; } return (h>>>0).toString(36); }
+function b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64d(s){ return decodeURIComponent(escape(atob(s))); }
+function makeCert(){
+  const done = Object.keys(state.units).filter(id=>state.units[id].best!=null);
+  const payload = {n:session.name, c:session.code, p:state.points, u:done.length, e:done.filter(i=>i[0]=='E').length, i:done.filter(i=>i[0]=='I').length, d:today()};
+  const body = b64e(JSON.stringify(payload));
+  return body + '.' + hash(body + CFG.salt);
+}
+function readCert(code){
+  code = code.trim();
+  const [body, sig] = code.split('.');
+  if(!body || !sig) throw new Error('格式不正確');
+  if(hash(body + CFG.salt) !== sig) throw new Error('簽章不符，此證明碼無效或已被修改');
+  return JSON.parse(b64d(body));
+}
+
+/* ===================== 畫面 ===================== */
+function render(){
+  const app = $('#app');
+  const ub = $('#userbox');
+  if(!session){ ub.innerHTML=''; }
+  else { ub.innerHTML = `<div><b>${esc(session.name)}</b> · ${esc(session.className)}</div><div>總點數 <b>${state.points}</b> 點 &nbsp; <button onclick="goHome()">首頁</button> <button onclick="logout()">登出</button></div>`; }
+  if(view.page==='login') app.innerHTML = loginView();
+  else if(view.page==='teacher') app.innerHTML = teacherView();
+  else if(view.page==='home') app.innerHTML = homeView();
+  else if(view.page==='unit') app.innerHTML = unitView();
+  window.scrollTo(0,0);
+}
+
+/* ---------- 登入 ---------- */
+function loginView(){
+  return `<div class="card login">
+    <img class="logo" src="logo.png" alt="" onerror="this.style.display='none'">
+    <h1 class="zh">皇家大衛英文閱讀集點站</h1>
+    <div class="sub zh">每天一篇英文閱讀 · 讀完作答就能集點數</div>
+    <div class="field zh"><label>姓名</label><input id="inName" placeholder="請輸入你的姓名（例：王小明）" autocomplete="off"></div>
+    <div class="field zh"><label>班級代碼</label><input id="inCode" placeholder="老師給的班級代碼" autocomplete="off"></div>
+    <div class="err zh" id="loginErr"></div>
+    <div style="text-align:center"><button class="btn" onclick="login()">登入開始閱讀</button></div>
+    <div class="howto zh">
+      <b>怎麼玩？</b> 共 100 個單元：初級 50 單元、中級 50 單元。每個單元先讀文章、看單字與文法，再完成 5 題閱讀測驗＋5 題單字題。答對 1 題得 ${CFG.pointsPerQuestion} 點，10 題全對再加 ${CFG.perfectBonus} 點！每個單元第一次作答才計分，之後可以再練習。
+    </div>
+    <p class="muted zh" style="text-align:center;margin-top:14px">點數會記錄在這台裝置的瀏覽器中，請固定使用同一台裝置與同一個姓名登入。</p>
+  </div>`;
+}
+function login(){
+  const name = $('#inName').value.trim();
+  const code = $('#inCode').value.trim().toUpperCase();
+  const err = $('#loginErr');
+  if(!name){ err.textContent='請輸入姓名'; return; }
+  if(code === String(CFG.teacherCode).toUpperCase()){ view={page:'teacher'}; render(); return; }
+  const cls = CFG.classCodes[code];
+  if(!cls){ err.textContent='班級代碼不正確，請向老師確認'; return; }
+  session = {name, code, className: cls};
+  try{ sessionStorage.setItem('rdlab:session', JSON.stringify(session)); }catch(e){}
+  load(); view={page:'home'}; render();
+  toast(`歡迎回來，${name}！`);
+}
+function logout(){ session=null; try{ sessionStorage.removeItem('rdlab:session'); }catch(e){} view={page:'login'}; render(); }
+function goHome(){ view={page:'home'}; render(); }
+
+/* ---------- 首頁 ---------- */
+function unitsOf(level){ return UNITS.filter(u=>u.level===level); }
+function homeView(){
+  const done = Object.values(state.units).filter(r=>r.best!=null);
+  const perfect = done.filter(r=>r.best>=10).length;
+  const maxPts = UNITS.length * (10*CFG.pointsPerQuestion + CFG.perfectBonus);
+  const badges = [];
+  if(done.length>=1) badges.push('🌱 初試啼聲');
+  if(done.length>=10) badges.push('📚 十篇達人');
+  if(done.length>=25) badges.push('🔥 閱讀火力');
+  if(done.length>=50) badges.push('🏅 半程英雄');
+  if(done.length>=100) badges.push('👑 全壘打 100');
+  if(perfect>=5) badges.push('💯 五次滿分');
+  if(state.points>=100) badges.push('💰 百點富翁');
+  const lv = Object.keys(LEVELS).map(level=>{
+    const list = unitsOf(level);
+    const d = list.filter(u=>state.units[u.id]&&state.units[u.id].best!=null).length;
+    return `<div class="card level">
+      <h2 class="zh">${LEVELS[level].name} <span class="tag">${LEVELS[level].en}</span></h2>
+      <div class="muted zh">已完成 ${d} / ${list.length} 單元</div>
+      <div class="bar"><i style="width:${d/list.length*100}%"></i></div>
+      <div class="ulist">${list.map(u=>{
+        const r = state.units[u.id];
+        const cls = r&&r.best!=null ? (r.best>=10?'done perfect':'done') : '';
+        return `<button class="ubtn ${cls}" onclick="openUnit('${u.id}')">
+          <span class="no">${r&&r.best!=null?'✓':u.num}</span>
+          <span class="tt">${esc(u.title)}<small class="zh">${esc(u.themeZh)}</small></span>
+          ${r&&r.best!=null?`<span class="pt">${r.score+r.bonus} 點</span>`:''}
+        </button>`;}).join('')}</div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+      <div class="stats zh">
+        <div class="stat pts"><div class="n">${state.points}</div><div class="l">累積點數（滿分 ${maxPts}）</div></div>
+        <div class="stat"><div class="n">${done.length}</div><div class="l">完成單元 / 100</div></div>
+        <div class="stat"><div class="n">${perfect}</div><div class="l">滿分單元</div></div>
+        <div class="stat"><div class="n">${done.length?Math.round(done.reduce((a,r)=>a+r.best,0)/done.length*10):0}%</div><div class="l">平均答對率</div></div>
+      </div>
+      <div class="badges zh" style="margin-top:12px">${badges.length?badges.map(b=>`<span>${b}</span>`).join(''):'<span class="muted">完成單元就能獲得徽章！</span>'}</div>
+      <div class="actions"><button class="btn ghost zh" onclick="showCert()">產生點數證明碼（交給老師）</button></div>
+      <div id="certArea"></div>
+    </div>
+    <div class="levels">${lv}</div>`;
+}
+function showCert(){
+  const c = makeCert();
+  $('#certArea').innerHTML = `<p class="zh muted" style="margin-top:14px">把下面這串證明碼複製後傳給老師，老師即可核對你的點數：</p>
+    <div class="certbox" id="certTxt">${c}</div>
+    <div class="actions"><button class="btn gold zh" onclick="copyCert()">複製證明碼</button></div>`;
+}
+function copyCert(){ const t=$('#certTxt').textContent; navigator.clipboard?.writeText(t).then(()=>toast('已複製！'),()=>toast('請手動選取複製')); }
+
+/* ---------- 老師驗證 ---------- */
+function teacherView(){
+  return `<div class="card login">
+    <h1 class="zh">老師驗證</h1>
+    <p class="zh muted">貼上學生提供的「點數證明碼」，即可核對姓名、班級與點數。可一次貼多行（每行一個）。</p>
+    <textarea id="certIn" placeholder="在此貼上證明碼"></textarea>
+    <div class="actions"><button class="btn" onclick="verifyCerts()">核對</button><button class="btn ghost" onclick="logout()">返回登入</button></div>
+    <div id="certOut"></div>
+    <div class="howto zh" style="margin-top:20px"><b>設定提醒：</b>班級代碼、老師驗證碼與點數規則都在 <code>config.js</code> 裡，可以用記事本直接修改。</div>
+  </div>`;
+}
+function verifyCerts(){
+  const lines = $('#certIn').value.split(/\s+/).filter(Boolean);
+  if(!lines.length) return;
+  let rows = '';
+  for(const l of lines){
+    try{ const p = readCert(l); rows += `<tr><td>${esc(p.n)}</td><td>${esc(CFG.classCodes[p.c]||p.c)}</td><td><b>${p.p}</b></td><td>${p.u}（初 ${p.e}／中 ${p.i}）</td><td>${esc(p.d)}</td><td style="color:var(--ok)">✓ 有效</td></tr>`; }
+    catch(e){ rows += `<tr><td colspan="5" style="color:var(--bad)">${esc(l.slice(0,30))}…</td><td style="color:var(--bad)">✗ ${esc(e.message)}</td></tr>`; }
+  }
+  $('#certOut').innerHTML = `<table class="tl zh" style="margin-top:14px"><tr><th>姓名</th><th>班級</th><th>點數</th><th>完成單元</th><th>產生日期</th><th>狀態</th></tr>${rows}</table>`;
+}
+
+/* ---------- 單元 ---------- */
+function openUnit(id){ view={page:'unit', id, step:1, answers:{}, graded:null}; render(); }
+function curUnit(){ return UNITS.find(u=>u.id===view.id); }
+function setStep(n){ view.step=n; render(); }
+function unitView(){
+  const u = curUnit(); const rec = state.units[u.id];
+  const unlocked = !!(rec && rec.best!=null) || !!view.graded;
+  const steps = [[1,'① 閱讀文章'],[2,'② 單字與文法'],[3,'③ 測驗 10 題'],[4,'④ 解答與翻譯']];
+  const head = `<div class="card">
+    <div class="unit-head">
+      <div style="flex:1">
+        <div><span class="tag zh">${LEVELS[u.level].tag} 第 ${u.num} 單元</span><span class="tag o zh">${esc(u.themeZh)} · ${esc(u.theme)}</span>${rec&&rec.best!=null?`<span class="tag g zh">已完成 · 最佳 ${rec.best}/10 · 獲得 ${rec.score+rec.bonus} 點</span>`:''}</div>
+        <h1>${esc(u.title)}</h1><div class="zh">${esc(u.titleZh)}</div>
+      </div>
+    </div>
+    <div class="steps zh" style="margin-top:14px">${steps.map(([n,t])=>`<button class="${view.step===n?'on':''} ${n===4&&unlocked?'ok':''}" onclick="${n===4&&!unlocked?'lockedMsg()':'setStep('+n+')'}">${t}${n===4&&!unlocked?' 🔒':''}</button>`).join('')}</div>
+  </div>`;
+  let body='';
+  if(view.step===1) body = `<div class="card article">${u.article.map(p=>`<p>${esc(p)}</p>`).join('')}
+      <p class="muted zh" style="text-align:right">約 ${u.article.join(' ').split(/\s+/).length} 字</p>
+      <div class="actions"><button class="btn" onclick="setStep(2)">下一步：單字與文法 →</button></div></div>`;
+  else if(view.step===2) body = `<div class="card">
+      <h2 class="zh" style="color:var(--navy)">重點單字 Key Vocabulary</h2>
+      <table class="vocab-table"><tr class="zh"><th>單字</th><th>詞性</th><th>中文</th><th>例句</th></tr>
+      ${u.vocab.map(v=>`<tr><td class="w">${esc(v.word)}</td><td class="p">${esc(v.pos)}</td><td class="zh">${esc(v.zh)}</td><td><span class="ex">${esc(v.example)}</span><span class="exz zh">${esc(v.exampleZh)}</span></td></tr>`).join('')}</table>
+      <h2 class="zh" style="color:var(--navy);margin-top:22px">片語 Phrases</h2>
+      <table class="vocab-table">${u.phrases.map(p=>`<tr><td class="w">${esc(p.phrase)}</td><td class="zh">${esc(p.zh)}</td><td><span class="ex">${esc(p.example)}</span><span class="exz zh">${esc(p.exampleZh)}</span></td></tr>`).join('')}</table>
+      <h2 class="zh" style="color:var(--navy);margin-top:22px">文法與句型 Grammar</h2>
+      ${u.grammar.map(g=>`<div class="gbox"><div class="pat">${esc(g.pattern)}</div><div class="exp zh">${esc(g.explain)}</div><div class="ex">${esc(g.example)}</div><div class="exz zh">${esc(g.exampleZh)}</div></div>`).join('')}
+      <div class="actions"><button class="btn ghost" onclick="setStep(1)">← 回到文章</button><button class="btn" onclick="setStep(3)">下一步：開始測驗 →</button></div></div>`;
+  else if(view.step===3) body = quizView(u, rec);
+  else body = `<div class="card"><h2 class="zh" style="color:var(--navy)">中文翻譯 Translation</h2><div class="trans zh">${u.translation.map(p=>`<p>${esc(p)}</p>`).join('')}</div>
+      ${view.graded?'':`<div class="actions"><button class="btn ghost" onclick="setStep(3)">再做一次測驗（練習，不加點）</button></div>`}
+      <div class="actions"><button class="btn" onclick="goHome()">回到單元列表</button>${nextBtn(u)}</div></div>`;
+  return head + body;
+}
+function lockedMsg(){ toast('先完成測驗，就能解鎖解答與中文翻譯！'); }
+function nextBtn(u){ const list=unitsOf(u.level); const i=list.findIndex(x=>x.id===u.id); const n=list[i+1]; return n?`<button class="btn gold" onclick="openUnit('${n.id}')">下一單元：${esc(n.title)} →</button>`:''; }
+
+function quizView(u, rec){
+  const qs = [...u.reading.map(q=>({...q,type:'reading'})), ...u.vocabQ.map(q=>({...q,type:'vocab'}))];
+  const g = view.graded;
+  const first = !(rec && rec.best!=null);
+  let html = `<div class="card">
+    <h2 class="zh" style="color:var(--navy)">測驗 Quiz <span class="muted" style="font-size:15px;font-weight:400">${first?`第一次作答計分：答對 1 題 ${CFG.pointsPerQuestion} 點，全對加 ${CFG.perfectBonus} 點`:'此單元已計分，本次為練習'}</span></h2>`;
+  if(g){ html += `<div class="result"><div class="big">${g.correct} / 10</div><div class="msg zh">${g.correct===10?'太厲害了，全部答對！':g.correct>=7?'表現不錯，再接再厲！':'再讀一次文章，下次會更好！'}</div>
+     <div class="zh">${g.counted?`本單元獲得 <b style="color:var(--orange)">${g.score+g.bonus}</b> 點${g.bonus?`（含全對獎勵 ${g.bonus} 點）`:''}，累積 <b>${state.points}</b> 點`:'（練習模式，不重複計分）'}</div></div>`; }
+  html += `<h3 class="zh" style="color:var(--muted)">Part A 閱讀理解 Reading Comprehension</h3>`;
+  qs.forEach((q,i)=>{
+    if(i===5) html += `<h3 class="zh" style="color:var(--muted);margin-top:18px">Part B 單字填空 Vocabulary</h3>`;
+    const sel = view.answers[i];
+    const ok = g ? sel===q.answer : null;
+    html += `<div class="q ${g?'graded':''}"><div class="qt"><span class="n">${i+1}</span>${esc(q.q)}${g?`<span class="mark ${ok?'ok':'ng'}">${ok?'✓ 答對':'✗ 答錯'}</span>`:''}</div>
+      ${q.options.map((o,k)=>{
+        let cls=''; if(g){ if(k===q.answer) cls='correct'; else if(k===sel) cls='wrong'; }
+        return `<label class="opt ${cls}"><input type="radio" name="q${i}" ${sel===k?'checked':''} ${g?'disabled':''} onchange="pick(${i},${k})"><span class="ab">(${ABC[k]})</span><span>${esc(o)}</span></label>`; }).join('')}
+      ${g?`<div class="exp zh"><b>解析：</b>${esc(q.explain)}</div>`:''}</div>`;
+  });
+  html += g ? `<div class="actions"><button class="btn" onclick="setStep(4)">查看中文翻譯 →</button><button class="btn ghost" onclick="retry()">再練習一次</button><button class="btn ghost" onclick="goHome()">回到單元列表</button></div>`
+            : `<div class="actions"><button class="btn ghost" onclick="setStep(1)">← 再看一次文章</button><button class="btn gold" onclick="submitQuiz()">交卷</button></div>`;
+  return html + `</div>`;
+}
+function pick(i,k){ view.answers[i]=k; }
+function submitQuiz(){
+  const u = curUnit();
+  const qs = [...u.reading, ...u.vocabQ];
+  const missing = qs.map((q,i)=>i).filter(i=>view.answers[i]==null);
+  if(missing.length){ toast(`還有 ${missing.length} 題沒作答（第 ${missing.map(i=>i+1).join('、')} 題）`); return; }
+  const correct = qs.filter((q,i)=>view.answers[i]===q.answer).length;
+  const rec = state.units[u.id];
+  const counted = !(rec && rec.best!=null);
+  let score=0, bonus=0;
+  if(counted){
+    score = correct*CFG.pointsPerQuestion; bonus = correct===10 ? CFG.perfectBonus : 0;
+    state.points += score + bonus;
+    state.units[u.id] = {score, bonus, best:correct, tries:1, date:today()};
+  } else {
+    rec.tries = (rec.tries||1)+1; rec.best = Math.max(rec.best, correct);
+  }
+  save();
+  view.graded = {correct, score, bonus, counted};
+  render();
+  if(counted) toast(`＋${score+bonus} 點！累積 ${state.points} 點`);
+}
+function retry(){ view.answers={}; view.graded=null; view.step=3; render(); }
+
+/* ---------- 啟動 ---------- */
+(function init(){
+  try{ const s = sessionStorage.getItem('rdlab:session'); if(s){ session = JSON.parse(s); if(CFG.classCodes[session.code]){ load(); view={page:'home'}; } else session=null; } }catch(e){}
+  render();
+})();
+</script>
+</body>
+</html>
