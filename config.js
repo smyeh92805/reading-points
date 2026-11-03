@@ -12,7 +12,7 @@ window.SITE_CONFIG = {
   teacherCode: "DAVID2026",
   // Google 試算表後端（Apps Script 網頁應用程式網址，以 /exec 結尾）。
   // 填入後：學生每次交卷自動寫入試算表、換裝置點數不會掉、老師後台可看全班紀錄。留空則只存在學生瀏覽器。
-  sheetUrl: "",
+  sheetUrl: "https://script.google.com/macros/s/AKfycbztep81n20I0CWzxHeVcH23Ct9qCL0_62DvPShqfS-h3U5r0CbfRJNMJ_eXwuDvBiVO/exec",
   // 點數規則
   pointsPerQuestion: 1,   // 每題答對得點
   perfectBonus: 5,        // 10 題全對額外獎勵
