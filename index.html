@@ -218,7 +218,7 @@ function loginView(){
     <img class="logo" src="logo.png" alt="" onerror="this.style.display='none'">
     <h1 class="zh">皇家大衛英文閱讀集點站</h1>
     <div class="sub zh">每天一篇英文閱讀 · 讀完作答就能集點數</div>
-    <div class="field zh"><label>中文姓名全名(英文不用)</label><input id="inName" placeholder="請輸入你的姓名（例：王小明）" autocomplete="off"></div>
+    <div class="field zh"><label>姓名</label><input id="inName" placeholder="請輸入你的姓名（例：王小明）" autocomplete="off"></div>
     <div class="field zh"><label>班級代碼</label><input id="inCode" placeholder="老師給的班級代碼" autocomplete="off"></div>
     <div class="err zh" id="loginErr"></div>
     <div style="text-align:center"><button class="btn" onclick="login()">登入開始閱讀</button></div>
@@ -248,7 +248,16 @@ function hasSheet(){ return !!(CFG.sheetUrl && /^https?:\/\//.test(CFG.sheetUrl)
 async function sheetGet(params){
   const u = new URL(CFG.sheetUrl); Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
   const r = await fetch(u.toString(), {method:'GET', redirect:'follow'});
-  const d = await r.json(); if(!d.ok) throw new Error(d.error||'後端錯誤'); return d;
+  const d = await r.json(); if(!d.ok) throw new Error(d.error||'後端錯誤');
+  if(d.records) d.records.forEach(x=>{ x.time = normTime(x.time); });
+  return d;
+}
+/* 把後端回傳的時間統一成台灣時間 yyyy-MM-dd HH:mm:ss */
+function normTime(t){
+  t = String(t||'');
+  if(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(t)) return t;
+  const d = new Date(t); if(isNaN(d)) return t;
+  try{ return d.toLocaleString('sv-SE',{timeZone:'Asia/Taipei',hour12:false}).replace('T',' ').slice(0,19); }catch(e){ return t; }
 }
 async function sheetPost(rec){
   if(!hasSheet()) return false;
