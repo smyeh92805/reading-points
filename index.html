@@ -124,7 +124,6 @@ button{font-family:inherit;font-size:1em;cursor:pointer}
 .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}
 .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--navy-d);color:#fff;padding:12px 22px;border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.25);font-size:17px;opacity:0;pointer-events:none;transition:.3s}
 .toast.show{opacity:1}
-.certbox{background:#f4f6fb;border:1px dashed var(--navy);border-radius:10px;padding:12px;font-family:monospace;font-size:14px;word-break:break-all}
 textarea{width:100%;font-family:monospace;font-size:14px;padding:10px;border:1px solid #c9c3b4;border-radius:10px;min-height:90px}
 .footer{text-align:center;color:var(--muted);font-size:14px;margin-top:30px}
 table.tl{width:100%;border-collapse:collapse;font-size:16px}
@@ -181,23 +180,6 @@ function save(){ try{ localStorage.setItem(storeKey(), JSON.stringify(state)); }
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600); }
 function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
-/* 簡單簽章（供老師驗證點數證明碼）*/
-function hash(str){ let h=5381; for(let i=0;i<str.length;i++){ h=((h<<5)+h+str.charCodeAt(i))|0; } return (h>>>0).toString(36); }
-function b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
-function b64d(s){ return decodeURIComponent(escape(atob(s))); }
-function makeCert(){
-  const done = Object.keys(state.units).filter(id=>state.units[id].best!=null);
-  const payload = {n:session.name, c:session.code, p:state.points, u:done.length, e:done.filter(i=>i[0]=='E').length, i:done.filter(i=>i[0]=='I').length, d:today()};
-  const body = b64e(JSON.stringify(payload));
-  return body + '.' + hash(body + CFG.salt);
-}
-function readCert(code){
-  code = code.trim();
-  const [body, sig] = code.split('.');
-  if(!body || !sig) throw new Error('格式不正確');
-  if(hash(body + CFG.salt) !== sig) throw new Error('簽章不符，此證明碼無效或已被修改');
-  return JSON.parse(b64d(body));
-}
 
 /* ===================== 畫面 ===================== */
 function render(){
@@ -326,20 +308,10 @@ function homeView(){
         <div class="stat"><div class="n">${done.length?Math.round(done.reduce((a,r)=>a+r.best,0)/done.length*10):0}%</div><div class="l">平均答對率</div></div>
       </div>
       <div class="badges zh" style="margin-top:12px">${badges.length?badges.map(b=>`<span>${b}</span>`).join(''):'<span class="muted">完成單元就能獲得徽章！</span>'}</div>
-      <div class="actions"><button class="btn ghost zh" onclick="showCert()">產生點數證明碼（交給老師）</button></div>
-      <div id="certArea"></div>
     </div>
     <div class="levels">${lv}</div>`;
 }
-function showCert(){
-  const c = makeCert();
-  $('#certArea').innerHTML = `<p class="zh muted" style="margin-top:14px">把下面這串證明碼複製後傳給老師，老師即可核對你的點數：</p>
-    <div class="certbox" id="certTxt">${c}</div>
-    <div class="actions"><button class="btn gold zh" onclick="copyCert()">複製證明碼</button></div>`;
-}
-function copyCert(){ const t=$('#certTxt').textContent; navigator.clipboard?.writeText(t).then(()=>toast('已複製！'),()=>toast('請手動選取複製')); }
-
-/* ---------- 老師驗證 ---------- */
+/* ---------- 老師後台 ---------- */
 function teacherView(){
   const sheetPart = hasSheet() ? `<div class="card">
       <h2 class="zh" style="color:var(--navy)">全班點數紀錄 <span class="muted" style="font-size:15px;font-weight:400">（資料來自 Google 試算表）</span></h2>
@@ -351,19 +323,12 @@ function teacherView(){
         </select>
       </div>
       <div id="recArea" class="zh"><p class="muted">載入中…</p></div>
-    </div>` : `<div class="card howto zh"><b>尚未連接 Google 試算表。</b>在 <code>config.js</code> 填入 sheetUrl（部署說明見 apps-script 資料夾的「設定步驟.txt」），這裡就會自動顯示全班紀錄。</div>`;
+    </div>` : `<div class="card howto zh"><b>尚未連接 Google 試算表。</b>在 <code>config.js</code> 填入 sheetUrl（部署說明見 apps-script 資料夾的「設定步驟.txt」），這裡就會自動顯示全班紀錄。目前學生的點數只存在各自的瀏覽器中。</div>`;
   return `<div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h1 class="zh" style="color:var(--navy);margin:0">老師後台</h1><span class="sp" style="flex:1"></span><button class="btn ghost" onclick="logout()">返回登入</button></div>
     </div>
     ${sheetPart}
-    <div class="card">
-    <h2 class="zh" style="color:var(--navy)">證明碼核對 <span class="muted" style="font-size:15px;font-weight:400">（沒有連接試算表時的備用方式）</span></h2>
-    <p class="zh muted">貼上學生提供的「點數證明碼」，即可核對姓名、班級與點數。可一次貼多行。</p>
-    <textarea id="certIn" placeholder="在此貼上證明碼"></textarea>
-    <div class="actions" style="justify-content:flex-start"><button class="btn" onclick="verifyCerts()">核對</button></div>
-    <div id="certOut"></div>
-    <div class="howto zh" style="margin-top:20px"><b>設定提醒：</b>班級代碼、老師驗證碼、點數規則與試算表網址都在 <code>config.js</code> 裡，可以用記事本直接修改。</div>
-  </div>`;
+    <div class="card howto zh"><b>設定提醒：</b>班級代碼、老師驗證碼、點數規則與試算表網址都在 <code>config.js</code> 裡，可以用記事本直接修改。</div>`;
 }
 let allRecords = [];
 async function loadAllRecords(){
@@ -399,16 +364,6 @@ function downloadCsv(){
   const rows = [['時間','姓名','班級代碼','班級','等級','單元','標題','答對題數','得點','獎勵點','是否計分'], ...allRecords.map(r=>[r.time,r.name,r.code,r.className,r.level,r.unit,r.title,r.correct,r.score,r.bonus,r.counted?'是':'否'])];
   const csv = '﻿' + rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = '點數紀錄_'+today()+'.csv'; a.click();
-}
-function verifyCerts(){
-  const lines = $('#certIn').value.split(/\s+/).filter(Boolean);
-  if(!lines.length) return;
-  let rows = '';
-  for(const l of lines){
-    try{ const p = readCert(l); rows += `<tr><td>${esc(p.n)}</td><td>${esc(CFG.classCodes[p.c]||p.c)}</td><td><b>${p.p}</b></td><td>${p.u}（初 ${p.e}／中 ${p.i}）</td><td>${esc(p.d)}</td><td style="color:var(--ok)">✓ 有效</td></tr>`; }
-    catch(e){ rows += `<tr><td colspan="5" style="color:var(--bad)">${esc(l.slice(0,30))}…</td><td style="color:var(--bad)">✗ ${esc(e.message)}</td></tr>`; }
-  }
-  $('#certOut').innerHTML = `<table class="tl zh" style="margin-top:14px"><tr><th>姓名</th><th>班級</th><th>點數</th><th>完成單元</th><th>產生日期</th><th>狀態</th></tr>${rows}</table>`;
 }
 
 /* ---------- 單元 ---------- */

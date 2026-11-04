@@ -15,7 +15,5 @@ window.SITE_CONFIG = {
   sheetUrl: "https://script.google.com/macros/s/AKfycbztep81n20I0CWzxHeVcH23Ct9qCL0_62DvPShqfS-h3U5r0CbfRJNMJ_eXwuDvBiVO/exec",
   // 點數規則
   pointsPerQuestion: 1,   // 每題答對得點
-  perfectBonus: 5,        // 10 題全對額外獎勵
-  // 點數證明碼的簽章鹽（改了之後舊的證明碼會失效）
-  salt: "RoyalDavid-ReadingLab"
+  perfectBonus: 5         // 10 題全對額外獎勵
 };
