@@ -4,6 +4,7 @@
 一、檔案結構
   index.html            網站主頁（登入、單元列表、閱讀、測驗、點數）
   units.js              100 個單元的內容（初級 E01–E50、中級 I01–I50）
+  pdf/E01.pdf…I50.pdf   每單元的文章 PDF（文章＋單字＋片語＋文法），學生在文章頁按「文章下載」取得
   config.js             老師設定檔：班級代碼、老師驗證碼、點數規則
   logo.png              Royal David 校徽（可換成自己的圖檔，檔名保持 logo.png）
   fonts/kaiu.ttf        標楷體（中文）

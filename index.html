@@ -125,6 +125,9 @@ button{font-family:inherit;font-size:1em;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--navy-d);color:#fff;padding:12px 22px;border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.25);font-size:17px;opacity:0;pointer-events:none;transition:.3s}
 .toast.show{opacity:1}
 textarea{width:100%;font-family:monospace;font-size:14px;padding:10px;border:1px solid #c9c3b4;border-radius:10px;min-height:90px}
+.dl{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px;padding:12px 14px;background:#fdf6e4;border-radius:12px}
+.dl .dl-label{font-weight:700;font-size:18px;color:var(--navy)}
+.dl a.btn{text-decoration:none;display:inline-block}
 .footer{text-align:center;color:var(--muted);font-size:14px;margin-top:30px}
 table.tl{width:100%;border-collapse:collapse;font-size:16px}
 table.tl th,table.tl td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
@@ -386,6 +389,7 @@ function unitView(){
   let body='';
   if(view.step===1) body = `<div class="card article">${u.article.map(p=>`<p>${esc(p)}</p>`).join('')}
       <p class="muted zh" style="text-align:right">約 ${u.article.join(' ').split(/\s+/).length} 字</p>
+      <div class="dl zh"><span class="dl-label">文章下載</span><a class="btn gold" href="pdf/${u.id}.pdf" download="${esc(LEVELS[u.level].tag)}第${u.num}單元_${esc(u.title.replace(/[\\/:*?"<>|]/g,''))}.pdf">⬇ 下載 PDF</a><span class="muted" style="font-size:14px">（含文章、單字、片語、文法，可離線閱讀或列印）</span></div>
       <div class="actions"><button class="btn" onclick="setStep(2)">下一步：單字與文法 →</button></div></div>`;
   else if(view.step===2) body = `<div class="card">
       <h2 class="zh" style="color:var(--navy)">重點單字 Key Vocabulary</h2>
